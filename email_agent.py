@@ -84,21 +84,25 @@ class EmailAgent:
             if response_type == "detailed":
                 # Generate a detailed response for negative emails
                 prompt = f"""Generate a positive and professional email response to this email summary: '{summary}'. 
-                Format the response as a proper email with:
-                1. A warm greeting
-                2. Positive acknowledgment of the concerns
-                3. Constructive solutions and next steps
-                4. A positive closing
-                Keep the tone optimistic, professional, and solution-oriented.
-                Focus on positive outcomes and collaboration.
+                The response should:
+                1. Start with a warm greeting
+                2. Acknowledge the specific concerns mentioned in the email
+                3. Provide constructive solutions or next steps
+                4. End with a positive closing
+                Keep the tone optimistic and solution-oriented.
+                Focus on collaboration and positive outcomes.
+                Make sure the response directly addresses the email content.
                 Response:"""
                 max_new_tokens = 200
             else:
                 # Generate a brief response for positive emails
                 prompt = f"""Generate a warm and positive email response to this email summary: '{summary}'. 
-                Format as a proper email with greeting and closing.
+                The response should:
+                1. Start with a friendly greeting
+                2. Show appreciation for the positive feedback
+                3. End with a warm closing
                 Keep it to 2-3 sentences.
-                Make it appreciative and encouraging.
+                Make it personal and appreciative.
                 Response:"""
                 max_new_tokens = 100
 
@@ -111,7 +115,7 @@ class EmailAgent:
                 repetition_penalty=1.2,
                 pad_token_id=50256,
                 truncation=True,
-                return_full_text=False  # Don't include the prompt in the output
+                return_full_text=False
             )[0]['generated_text']
             
             # Extract just the response part and clean it up
@@ -132,21 +136,27 @@ class EmailAgent:
             
             # Ensure positive tone in the response
             positive_phrases = [
-                "Thank you for bringing this to our attention",
-                "We appreciate your feedback",
-                "We're committed to finding a solution",
-                "We look forward to working together",
-                "We're excited to address this",
-                "We value your input",
-                "We're confident we can resolve this",
-                "We're happy to help",
-                "We're glad to assist",
-                "We're here to support you"
+                "Thank you for your email",
+                "We appreciate your message",
+                "We're glad to hear from you",
+                "We value your communication",
+                "We're happy to assist you",
+                "We're excited to help",
+                "We're here to support you",
+                "We're committed to addressing your concerns",
+                "We're looking forward to working together",
+                "We're pleased to receive your email"
             ]
             
             # Add a positive phrase if the response seems too neutral
             if not any(phrase.lower() in response.lower() for phrase in positive_phrases):
                 response = response.replace("Dear Team,\n\n", f"Dear Team,\n\n{positive_phrases[0]}. ")
+            
+            # Ensure the response is relevant to the email content
+            if not any(word.lower() in response.lower() for word in summary.split()[:5]):
+                # Add a relevant acknowledgment if missing
+                relevant_part = summary.split('.')[0]  # Get first sentence of summary
+                response = response.replace("Dear Team,\n\n", f"Dear Team,\n\nRegarding your message about {relevant_part}, ")
             
             return response
         except Exception as e:
