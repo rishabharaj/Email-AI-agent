@@ -1,8 +1,8 @@
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch
-transformers
+torch>=2.0.0
+transformers>=4.27.0
 nltk
 python-dotenv
-streamlit
+streamlit>=1.22.0
 numpy
-tokenizers 
+tokenizers

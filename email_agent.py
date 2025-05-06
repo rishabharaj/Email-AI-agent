@@ -1,5 +1,5 @@
 import nltk
-from transformers import pipeline
+from transformers import pipeline, AutoModel, AutoTokenizer
 import torch
 from typing import Tuple
 import os
@@ -12,14 +12,18 @@ except Exception as e:
     print(f"Warning: Could not download NLTK data: {str(e)}")
 
 class EmailAgent:
-    def __init__(self):
+    def __init__(self, device='cpu'):
+        self.device = device
+        self.models = []  # List to keep track of all models
+        
         try:
-            # Initialize sentiment analysis pipeline
+            # Initialize your models with proper device handling
             self.sentiment_analyzer = pipeline(
                 "sentiment-analysis",
-                model="distilbert-base-uncased-finetuned-sst-2-english",
-                device="cpu"
+                model="nlptown/bert-base-multilingual-uncased-sentiment",
+                device=-1 if device == 'cpu' else 0
             )
+            self.models.append(self.sentiment_analyzer.model)
             
             # Initialize summarization pipeline with more concise parameters
             self.summarizer = pipeline(
@@ -212,4 +216,4 @@ def main():
         print(f"Error in main: {str(e)}")
 
 if __name__ == "__main__":
-    main() 
+    main()

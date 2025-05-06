@@ -11,10 +11,23 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize session state
+# Initialize session state with proper device handling
 if 'agent' not in st.session_state:
     try:
-        st.session_state.agent = EmailAgent()
+        # Set device
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        
+        # Initialize agent with device specification
+        st.session_state.agent = EmailAgent(device=device)
+        
+        # Ensure models are properly moved to CPU if needed
+        if device == 'cpu':
+            for model in st.session_state.agent.models:
+                if hasattr(model, 'to_empty'):
+                    model = model.to_empty(device='cpu')
+                else:
+                    model = model.to(device='cpu')
+                    
     except Exception as e:
         st.error(f"Error initializing email agent: {str(e)}")
         st.stop()
@@ -125,4 +138,4 @@ if st.button("Analyze Email", type="primary"):
 
 # Footer
 st.markdown("---")
-st.markdown("Made with ❤️ using Streamlit") 
+st.markdown("Made with ❤️ using Streamlit")
